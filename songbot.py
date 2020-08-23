@@ -4,10 +4,10 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 from telegram import MessageEntity
 
-base_url="https://saavn.sumit.codes/"
+base_url="http://206.189.128.223:5000/result/?query="
 
 import urllib.request, json
-def fetchJson(url):
+def fjson(url):
     resp=urllib.request.urlopen(url)
     return json.loads(resp.read().decode())
 
@@ -16,20 +16,21 @@ def start(update, context):
     update.message.reply_text(text)
 
 def download(update, context):
-    x=update.message.parse_entity(types= MessageEntity.URL)
+    x=update.message.parse_entities(types= MessageEntity.URL)
+    msg=update.message.reply_text("Fetching.....")
     for i in x:
-        
         try:
-            rejson= fetchJson(base_url + x[i])
+            rjson= fjson(base_url + x[i])
+            title= rjson["song"]
+            link= rjson["media_url"]
+            msg.delete()
+            update.message.reply_document(link, filename=title + ".mp3", caption= "{}".format(title))
+            continue 
         except:
             continue
-        if "error" in rejson:
-           continue
-        title= rejson["result"][0]["song_title"]
-        dlink= rejson["result"][0]["download_link"]
-        update.message.reply_document(dlink, "{}".format(title))
-    update.message.reply_text("I didn't find anything.")
-
+        if "error" in rjson:
+            continue
+    msg.edit_text("I didn't find anything.")
 
 
 
